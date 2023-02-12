@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  qslbureau-db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "6033:3306"
+    volumes:
+      - ./opt/mysql:/var/lib/mysql
+    restart: always
+    networks:
+      - network-backend
+
+  qslbureau-recibir-app:
+    image: "${DOCKER_USER_NAME}/qslbureau-back:${ENVIRONMENT}"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - qslbureau-db
+    environment:
+      MYSQL_DB_URL: jdbc:mysql://qslbureau-db:3306/${MYSQL_DATABASE}?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&characterEncoding=utf-8&&enabledTLSProtocols=TLSv1.2
+      MYSQL_DB_USERNAME: ${MYSQL_USER}
+      MYSQL_DB_PASSWORD: ${MYSQL_PASSWORD}
+      ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
+    networks:
+      - network-backend
+
+  qslbureau-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - qslbureau-db
+    environment:
+      PMA_HOST: qslbureau-db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+    networks:
+      - network-backend
+    
+networks:
+  network-backend:
