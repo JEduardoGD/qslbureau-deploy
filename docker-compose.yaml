@@ -8,27 +8,19 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_TCP_PORT: ${MYSQL_PORT}
     ports:
-      - "6033:3306"
+      - "6033:${MYSQL_PORT}"
     volumes:
       - ./opt/mysql:/var/lib/mysql
     restart: always
     networks:
       - network-backend
-
-  qslbureau-recibir-app:
-    image: "${DOCKER_USER_NAME}/qslbureau-back:${ENVIRONMENT}"
-    ports:
-      - "8080:8080"
-    depends_on:
-      - qslbureau-db
-    environment:
-      MYSQL_DB_URL: jdbc:mysql://qslbureau-db:3306/${MYSQL_DATABASE}?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&characterEncoding=utf-8&&enabledTLSProtocols=TLSv1.2
-      MYSQL_DB_USERNAME: ${MYSQL_USER}
-      MYSQL_DB_PASSWORD: ${MYSQL_PASSWORD}
-      ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
-    networks:
-      - network-backend
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   qslbureau-phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -36,13 +28,51 @@ services:
       - qslbureau-db
     environment:
       PMA_HOST: qslbureau-db
-      PMA_PORT: 3306
+      PMA_PORT: ${MYSQL_PORT}
       PMA_ARBITRARY: 1
     restart: always
     ports:
       - 8081:80
     networks:
       - network-backend
+    depends_on:
+      qslbureau-db:
+        condition: service_healthy
+
+  qslbureau-recibir-back:
+    image: "${DOCKER_USER_NAME}/qslbureau-back:${DOCKER_ENVIRONMENT}"
+    ports:
+      - "8080:8080"
+    depends_on:
+      qslbureau-db:
+        condition: service_healthy
+    environment:
+      MYSQL_DB_URL: jdbc:mysql://qslbureau-db:${MYSQL_PORT}/${MYSQL_DATABASE}?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&characterEncoding=utf-8&&enabledTLSProtocols=TLSv1.2
+      MYSQL_DB_USERNAME: ${MYSQL_USER}
+      MYSQL_DB_PASSWORD: ${MYSQL_PASSWORD}
+      ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
+      FRONT_NAMESERVER: qslbureau-recibir-front
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - network-backend
+    healthcheck:
+      test: curl -m 5 --silent --fail --request GET http://localhost:8080/actuator/health | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  qslbureau-recibir-front:
+    image: "${DOCKER_USER_NAME}/qslbureau-front:${DOCKER_ENVIRONMENT}"
+    ports:
+      - "80:80"
+    depends_on:
+      qslbureau-recibir-back:
+        condition: service_healthy
+    environment:
+      API_URL: http://qslbureau-recibir-back:8080
+    networks:
+      - network-backend
+    restart: on-failure:3
     
 networks:
   network-backend:
