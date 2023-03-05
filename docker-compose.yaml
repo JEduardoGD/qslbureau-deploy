@@ -18,7 +18,7 @@ services:
       - network-backend
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
-      interval: 5s
+      interval: 30s
       timeout: 5s
       retries: 5
 
@@ -51,13 +51,13 @@ services:
       MYSQL_DB_USERNAME: ${MYSQL_USER}
       MYSQL_DB_PASSWORD: ${MYSQL_PASSWORD}
       ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
-      FRONT_NAMESERVER: qslbureau-recibir-front
+      FRONT_NAMESERVER: "http://localhost:${FRONT_EXTERNAL_PORT}"
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - network-backend
     healthcheck:
       test: curl -m 5 --silent --fail --request GET http://localhost:8080/actuator/health | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
-      interval: 60s
+      interval: 30s
       timeout: 5s
       retries: 5
 
