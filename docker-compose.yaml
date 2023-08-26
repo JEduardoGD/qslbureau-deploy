@@ -51,7 +51,7 @@ services:
       MYSQL_DB_USERNAME: ${MYSQL_USER}
       MYSQL_DB_PASSWORD: ${MYSQL_PASSWORD}
       ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
-      FRONT_NAMESERVER: "http://localhost:${FRONT_EXTERNAL_PORT}"
+      FRONT_NAMESERVER: ${FRONT_NAMESERVER}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - network-backend
