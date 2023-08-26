@@ -2,6 +2,7 @@ version: "3"
 
 services:
   qslbureau-db:
+    restart: always
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -13,7 +14,6 @@ services:
       - "${MYSQL_PORT}"
     volumes:
       - ./opt/mysql:/var/lib/mysql
-    restart: always
     networks:
       - network-backend
     healthcheck:
@@ -23,6 +23,7 @@ services:
       retries: 5
 
   qslbureau-phpmyadmin:
+    restart: always
     image: phpmyadmin/phpmyadmin
     links:
       - qslbureau-db
@@ -30,7 +31,6 @@ services:
       PMA_HOST: qslbureau-db
       PMA_PORT: ${MYSQL_PORT}
       PMA_ARBITRARY: 1
-    restart: always
     ports:
       - ${PHPMYADMIN_EXTERNAL_PORT}:80
     networks:
@@ -62,6 +62,7 @@ services:
       retries: 5
 
   qslbureau-recibir-front:
+    restart: always
     image: "${DOCKER_USER_NAME}/qslbureau-front:${DOCKER_ENVIRONMENT}"
     ports:
       - "${FRONT_EXTERNAL_PORT}:80"
@@ -72,7 +73,6 @@ services:
       API_URL: http://qslbureau-recibir-back:8080
     networks:
       - network-backend
-    restart: on-failure:3
     
 networks:
   network-backend:
