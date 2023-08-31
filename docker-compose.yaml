@@ -40,6 +40,7 @@ services:
         condition: service_healthy
 
   qslbureau-recibir-back:
+    restart: always
     image: "${DOCKER_USER_NAME}/qslbureau-back:${DOCKER_ENVIRONMENT}"
     ports:
       - "8080:8080"
