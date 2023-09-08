@@ -54,6 +54,8 @@ services:
       ROOT_LOG_LEVEL: ${ROOT_LOG_LEVEL}
       FRONT_NAMESERVER: ${FRONT_NAMESERVER}
       JWT_SECRET: ${JWT_SECRET}
+      QRZ_USERNAME: ${QRZ_USERNAME}
+      QRZ_PASSWORD: ${QRZ_PASSWORD}
     networks:
       - network-backend
     healthcheck:
