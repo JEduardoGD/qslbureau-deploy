@@ -43,7 +43,7 @@ services:
     restart: always
     image: "${DOCKER_USER_NAME}/qslbureau-back:${DOCKER_ENVIRONMENT}"
     ports:
-      - "8080:8087"
+      - "8087:8080"
     depends_on:
       qslbureau-db:
         condition: service_healthy
